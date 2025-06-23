@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PushUp Panic - Action Dodge Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Game Header -->
+        <div class="game-header">
+            <h1>⚡ PushUp Panic</h1>
+            <div class="game-stats">
+                <div class="stat">
+                    <span class="stat-label">Score:</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Level:</span>
+                    <span class="stat-value" id="level">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Lives:</span>
+                    <span class="stat-value" id="lives">3</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Game Area -->
+        <div class="game-main">
+            <!-- Webcam Preview (small overlay) -->
+            <div class="webcam-preview">
+                <video id="webcam" autoplay muted playsinline></video>
+                <canvas id="poseCanvas"></canvas>
+            </div>
+            
+            <!-- Phaser Game Canvas -->
+            <div id="gameContainer"></div>
+            
+            <!-- Game Status Overlay -->
+            <div class="game-overlay">
+                <div id="gameStatus" class="game-status">⚡ SYSTEM INITIALIZING ⚡</div>
+                <div id="gameInstructions" class="game-instructions">
+                    <span class="instruction-header">❮ NEURAL INTERFACE ACTIVE ❯</span><br>
+                    <strong>DODGE • DUCK • JUMP • LEAN</strong><br>
+                    <span class="sub-instruction">Bewegung wird durch KI-Pose-Erkennung erfasst</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Controls -->
+        <div class="game-controls">
+            <button id="startGameBtn" class="game-btn primary">Spiel starten</button>
+            <button id="pauseGameBtn" class="game-btn secondary" disabled>Pausieren</button>
+            <button id="resetGameBtn" class="game-btn secondary">Neustart</button>
+        </div>
+
+        <!-- Debug Panel (removable in production) -->
+        <div class="debug-panel" id="debugPanel">
+            <h3>Debug Info</h3>
+            <div id="debugInfo">
+                <div>Pose Detection: <span id="poseStatus">❌</span></div>
+                <div>Player Position: <span id="playerPos">0, 0</span></div>
+                <div>Objects Active: <span id="objectCount">0</span></div>
+                <div>FPS: <span id="fps">0</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js"></script>
+    
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <!-- Debug: Check if libraries loaded -->
+    <script>
+        console.log('🎮 Checking game libraries...');
+        setTimeout(() => {
+            console.log('🔍 Phaser 3 loaded:', typeof Phaser !== 'undefined' ? '✅' : '❌');
+            console.log('🔍 TensorFlow.js loaded:', typeof tf !== 'undefined' ? '✅' : '❌');
+            console.log('🔍 Pose Detection loaded:', typeof poseDetection !== 'undefined' ? '✅' : '❌');
+            if (typeof Phaser !== 'undefined') {
+                console.log('🔍 Phaser version:', Phaser.VERSION);
+            }
+        }, 100);
+    </script>
+    
+    <!-- Game Scripts -->
+    <script src="js/performanceManager.js"></script>
+    <script src="js/visualEffects.js"></script>
+    <script src="js/uiManager.js"></script>
+    <script src="js/supabaseManager.js"></script>
+    <script src="js/webcamManager.js"></script>
+    <script src="js/poseTracker.js"></script>
+    <script src="js/gameObjects.js"></script>
+    <script src="js/gameScene.js"></script>
+    <script src="js/gameManager.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

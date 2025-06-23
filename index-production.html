@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PushUp Panic - Action Dodge Game</title>
+    <meta name="description" content="Webcam-based action dodge game with AI pose detection. Duck, jump, and lean to avoid obstacles!">
+    <meta name="keywords" content="game, webcam, ai, pose detection, action, dodge">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Security headers for production -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob:; connect-src 'self' https://umvrurelsxpxmyzcvrcd.supabase.co;">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Game Header -->
+        <div class="game-header">
+            <h1>⚡ PushUp Panic</h1>
+            <div class="game-stats">
+                <div class="stat">
+                    <span class="stat-label">Score:</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Level:</span>
+                    <span class="stat-value" id="level">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Lives:</span>
+                    <span class="stat-value" id="lives">3</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Game Area -->
+        <div class="game-main">
+            <!-- Webcam Preview (small overlay) -->
+            <div class="webcam-preview">
+                <video id="webcam" autoplay muted playsinline></video>
+                <canvas id="poseCanvas"></canvas>
+            </div>
+            
+            <!-- Phaser Game Canvas -->
+            <div id="gameContainer"></div>
+            
+            <!-- Game Status Overlay -->
+            <div class="game-overlay">
+                <div id="gameStatus" class="game-status">⚡ SYSTEM INITIALIZING ⚡</div>
+                <div id="gameInstructions" class="game-instructions">
+                    <span class="instruction-header">❮ NEURAL INTERFACE ACTIVE ❯</span><br>
+                    <strong>DODGE • DUCK • JUMP • LEAN</strong><br>
+                    <span class="sub-instruction">Bewegung wird durch KI-Pose-Erkennung erfasst</span><br>
+                    <small>⚠️ Webcam-Zugriff erforderlich - bitte erlauben</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Controls -->
+        <div class="game-controls">
+            <button id="startGameBtn" class="game-btn primary">Spiel starten</button>
+            <button id="pauseGameBtn" class="game-btn secondary" disabled>Pausieren</button>
+            <button id="resetGameBtn" class="game-btn secondary">Neustart</button>
+        </div>
+
+        <!-- Debug Panel (hidden in production) -->
+        <div class="debug-panel" id="debugPanel" style="display: none;">
+            <h3>Debug Info</h3>
+            <div id="debugInfo">
+                <div>Pose Detection: <span id="poseStatus">❌</span></div>
+                <div>Player Position: <span id="playerPos">0, 0</span></div>
+                <div>Objects Active: <span id="objectCount">0</span></div>
+                <div>FPS: <span id="fps">0</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js" defer></script>
+    
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
+    
+    <!-- Game Scripts -->
+    <script src="js/performanceManager.js" defer></script>
+    <script src="js/visualEffects.js" defer></script>
+    <script src="js/uiManager.js" defer></script>
+    <script src="js/supabaseManager.js" defer></script>
+    <script src="js/webcamManager.js" defer></script>
+    <script src="js/poseTracker.js" defer></script>
+    <script src="js/gameObjects.js" defer></script>
+    <script src="js/gameScene.js" defer></script>
+    <script src="js/gameManager.js" defer></script>
+    <script src="js/app.js" defer></script>
+    
+    <!-- Production Analytics (optional) -->
+    <script>
+        // Simple analytics
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            });
+        }
+    </script>
+</body>
+</html>

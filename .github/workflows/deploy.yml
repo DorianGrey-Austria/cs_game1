@@ -1,0 +1,77 @@
+name: Deploy PushUp Panic to Hostinger
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Prepare deployment files
+      run: |
+        echo "🚀 Preparing PushUp Panic for deployment..."
+        
+        # Create deployment directory
+        mkdir -p deploy/pushup-panic
+        
+        # Copy production files
+        cp index-production.html deploy/pushup-panic/index.html
+        cp styles.css deploy/pushup-panic/
+        cp sw.js deploy/pushup-panic/
+        
+        # Copy JS files
+        mkdir -p deploy/pushup-panic/js
+        cp js/*.js deploy/pushup-panic/js/
+        
+        # Copy assets
+        mkdir -p deploy/pushup-panic/assets
+        cp -r assets/* deploy/pushup-panic/assets/
+        
+        # Create .htaccess
+        cat > deploy/pushup-panic/.htaccess << 'EOF'
+        # Force HTTPS for webcam functionality
+        RewriteEngine On
+        RewriteCond %{HTTPS} !=on
+        RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+        
+        # Enable compression
+        <ifModule mod_deflate.c>
+            AddOutputFilterByType DEFLATE text/plain
+            AddOutputFilterByType DEFLATE text/html
+            AddOutputFilterByType DEFLATE text/css
+            AddOutputFilterByType DEFLATE application/javascript
+        </ifModule>
+        EOF
+        
+        echo "✅ Deployment files prepared"
+        
+    - name: Deploy to Hostinger via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./deploy/pushup-panic/
+        server-dir: /public_html/pushup-panic/
+        
+    - name: Verify deployment
+      run: |
+        echo "🎯 Deployment completed!"
+        echo "Game available at: https://aiworkflows.at/pushup-panic/"
+        echo ""
+        echo "Features deployed:"
+        echo "- ✅ Webcam pose detection"
+        echo "- ✅ Supabase highscores"
+        echo "- ✅ Progressive difficulty"
+        echo "- ✅ HTTPS security"

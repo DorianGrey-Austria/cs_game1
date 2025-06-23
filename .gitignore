@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Development files
+test-2d-simple/
+workspace/
+data/
+
+# Logs
+*.log
+mcp logs/
+
+# Docker
+docker-compose.yml
+mcp-docker-setup/
+
+# Config files (keep structure but not sensitive data)
+claude-desktop-config*.json
+supabase-config.json
+
+# Build artifacts
+deployment/
+*.zip
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test.html
+troubleshooting.md
+tipps.md

@@ -1,0 +1,27 @@
+
+# 🚀 PushUp Panic - Manual Upload Required
+
+The automatic API upload failed. Please upload manually:
+
+## Quick Upload Steps:
+1. Go to: https://hpanel.hostinger.com
+2. Click "File Manager" in Hosting section
+3. Navigate to: public_html/
+4. Upload: deployment/pushup-panic-deploy.zip
+5. Extract the ZIP file
+6. Access game at: https://aiworkflows.at/pushup-panic/
+
+## Verification Checklist:
+- ✅ HTTPS enabled (required for webcam)
+- ✅ All JS files uploaded to js/ folder
+- ✅ Assets uploaded to assets/ folder
+- ✅ .htaccess file in place for redirects
+
+## Expected URL: https://aiworkflows.at/pushup-panic/
+
+The game is production-ready with:
+- Supabase highscores integration
+- Webcam pose detection
+- Progressive difficulty
+- Responsive design
+            

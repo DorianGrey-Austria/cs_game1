@@ -1,0 +1,42 @@
+{
+  "mcpServers": {
+    "blender": {
+      "command": "uvx",
+      "args": ["blender-mcp"],
+      "env": {
+        "BLENDER_EXECUTABLE": "/usr/bin/blender"
+      }
+    },
+    "sqlite-docker": {
+      "command": "docker",
+      "args": ["exec", "-i", "zeichenapp-sqlite-mcp-1", "npx", "mcp-sqlite", "/app/database.db"]
+    },
+    "filesystem-docker": {
+      "command": "docker", 
+      "args": ["exec", "-i", "zeichenapp-filesystem-mcp-1", "npx", "@modelcontextprotocol/server-filesystem", "/workspace"]
+    },
+    "thinking-docker": {
+      "command": "docker",
+      "args": ["exec", "-i", "zeichenapp-sequential-thinking-mcp-1", "npx", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "desktop-commander-docker": {
+      "command": "docker",
+      "args": ["exec", "-i", "zeichenapp-desktop-commander-mcp-1", "npx", "@wonderwhy-er/desktop-commander"]
+    },
+    "hostinger-api": {
+      "command": "npx",
+      "args": ["hostinger-api-mcp"],
+      "env": {
+        "DEBUG": "false",
+        "APITOKEN": "SA1fE8frvZ5hv7pb1GveWvc9Fy7o3uQHHmxEK0KF0d8588fc"
+      }
+    },
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase@latest", "--read-only", "--project-ref=umvrurelsxpxmyzcvrcd"],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_c7756a58f0dbfea6ad38c056e436e16030ae0393"
+      }
+    }
+  }
+}
