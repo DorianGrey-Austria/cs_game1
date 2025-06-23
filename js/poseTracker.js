@@ -131,11 +131,25 @@ class PoseTracker {
         // Calculate normalized positions
         const newPosition = this.calculateGamePosition(keypoints);
         
-        // Smooth the position changes
-        this.playerPosition.x = this.lerp(this.playerPosition.x, newPosition.x, this.smoothingFactor);
-        this.playerPosition.y = this.lerp(this.playerPosition.y, newPosition.y, this.smoothingFactor);
+        // Enhanced smoothing with different factors for different movements
+        const movementDelta = Math.abs(newPosition.x - this.playerPosition.x) + Math.abs(newPosition.y - this.playerPosition.y);
+        const dynamicSmoothing = movementDelta > 0.1 ? 0.3 : this.smoothingFactor; // Faster response to large movements
+        
+        // Apply smoothing
+        this.playerPosition.x = this.lerp(this.playerPosition.x, newPosition.x, dynamicSmoothing);
+        this.playerPosition.y = this.lerp(this.playerPosition.y, newPosition.y, dynamicSmoothing);
         this.playerPosition.state = newPosition.state;
         this.playerPosition.handState = newPosition.handState;
+        
+        // Enhanced logging for debugging movement
+        if (Math.random() < 0.05) { // Occasional logging
+            console.log('🎯 Pose Update:', {
+                pose: newPosition,
+                smoothed: this.playerPosition,
+                calibrated: this.calibration.isCalibrated,
+                delta: Math.round(movementDelta * 100) / 100
+            });
+        }
     }
 
     getKeypoints(pose) {
@@ -175,37 +189,42 @@ class PoseTracker {
         let state = 'neutral';
         let handState = 'down';
 
-        // Calculate horizontal position (left/right leaning)
+        // 🚀 ENHANCED MULTI-MODAL GESTURE CONTROL 🚀
+        
+        // 1. BODY POSITION: Horizontal movement (left/right leaning + shoulder tracking)
         if (keypoints.left_shoulder && keypoints.right_shoulder) {
             const shoulderCenterX = (keypoints.left_shoulder.x + keypoints.right_shoulder.x) / 2;
             
-            // Normalize to video width (assuming 640px typical width)
-            x = shoulderCenterX / 640;
+            // Enhanced sensitivity for better responsiveness
+            x = (shoulderCenterX / 640) * 1.2 - 0.1; // Amplify movement
             x = Math.max(0, Math.min(1, x)); // Clamp to 0-1
             
-            // Determine leaning state
-            const shoulderTilt = keypoints.left_shoulder.x - keypoints.right_shoulder.x;
-            const tiltThreshold = this.calibration.shoulderWidth * 0.1;
+            // More sensitive leaning detection
+            const shoulderTilt = keypoints.left_shoulder.y - keypoints.right_shoulder.y;
+            const tiltThreshold = this.calibration.shoulderWidth * 0.05; // More sensitive
             
             if (Math.abs(shoulderTilt) > tiltThreshold) {
-                state = shoulderTilt > 0 ? 'leaning_right' : 'leaning_left';
+                state = shoulderTilt > 0 ? 'leaning_left' : 'leaning_right';
+                // Add extra horizontal movement when leaning
+                x += shoulderTilt > 0 ? -0.1 : 0.1;
+                x = Math.max(0, Math.min(1, x));
             }
         }
 
-        // Calculate vertical position (ducking/jumping)
+        // 2. HEAD POSITION: Vertical movement (ducking/jumping + nose tracking)
         if (keypoints.nose && this.calibration.isCalibrated) {
             const headY = keypoints.nose.y;
             const neutralY = this.calibration.neutralY;
             
-            // Calculate relative position
+            // Enhanced vertical sensitivity
             const yDiff = headY - neutralY;
-            const movementRange = this.calibration.shoulderWidth; // Use shoulder width as movement scale
+            const movementRange = this.calibration.shoulderWidth * 0.8; // More responsive
             
-            y = 0.5 + (yDiff / movementRange);
+            y = 0.5 + (yDiff / movementRange) * 1.5; // Amplify movement
             y = Math.max(0, Math.min(1, y)); // Clamp to 0-1
             
-            // Determine ducking/jumping state
-            const verticalThreshold = movementRange * 0.15;
+            // More responsive ducking/jumping thresholds
+            const verticalThreshold = movementRange * 0.1; // More sensitive
             
             if (yDiff > verticalThreshold) {
                 state = 'ducking';
@@ -214,21 +233,46 @@ class PoseTracker {
             }
         }
 
-        // Calculate hand position (for bonus collection)
+        // 3. HAND GESTURES: Advanced gesture recognition
         if (keypoints.left_wrist && keypoints.right_wrist && this.calibration.isCalibrated) {
             const leftHandY = keypoints.left_wrist.y;
             const rightHandY = keypoints.right_wrist.y;
+            const leftHandX = keypoints.left_wrist.x;
+            const rightHandX = keypoints.right_wrist.x;
             const avgHandY = (leftHandY + rightHandY) / 2;
             
-            // Check if hands are raised significantly above shoulders
             const shoulderY = this.calibration.neutralY;
-            const handThreshold = this.calibration.shoulderWidth * 0.3; // More sensitive than head movement
+            const handThreshold = this.calibration.shoulderWidth * 0.2; // More sensitive
             
+            // GESTURE 1: Hands Up (bonus collection)
             if (avgHandY < shoulderY - handThreshold) {
                 handState = 'up';
-            } else {
-                handState = 'down';
             }
+            
+            // GESTURE 2: Spread Arms Wide (shield mode - future feature)
+            const handSpread = Math.abs(leftHandX - rightHandX);
+            if (handSpread > this.calibration.shoulderWidth * 1.5) {
+                handState = 'spread';
+                state = 'shield'; // New state
+            }
+            
+            // GESTURE 3: Clap (special power - future feature)
+            if (Math.abs(leftHandX - rightHandX) < 50 && avgHandY < shoulderY) {
+                handState = 'clap';
+                state = 'power'; // New state
+            }
+        }
+
+        // 4. FULL BODY MOVEMENT: Whole body lean detection
+        if (keypoints.left_shoulder && keypoints.right_shoulder && keypoints.left_hip && keypoints.right_hip) {
+            const bodyCenter = {
+                x: (keypoints.left_shoulder.x + keypoints.right_shoulder.x + keypoints.left_hip.x + keypoints.right_hip.x) / 4,
+                y: (keypoints.left_shoulder.y + keypoints.right_shoulder.y + keypoints.left_hip.y + keypoints.right_hip.y) / 4
+            };
+            
+            // Override position with full body tracking for more dramatic movement
+            const bodyX = (bodyCenter.x / 640) * 1.3 - 0.15; // Even more amplified
+            x = Math.max(0, Math.min(1, bodyX));
         }
 
         return { x, y, state, handState };

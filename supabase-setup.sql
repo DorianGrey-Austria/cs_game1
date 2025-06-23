@@ -20,12 +20,14 @@ CREATE INDEX IF NOT EXISTS idx_highscores_created ON public.highscores(created_a
 ALTER TABLE public.highscores ENABLE ROW LEVEL SECURITY;
 
 -- 5. Policy für public read access (jeder kann Highscores lesen)
-CREATE POLICY IF NOT EXISTS "Allow public read access" 
+DROP POLICY IF EXISTS "Allow public read access" ON public.highscores;
+CREATE POLICY "Allow public read access" 
 ON public.highscores FOR SELECT 
 USING (true);
 
 -- 6. Policy für public insert access (jeder kann Scores eintragen)
-CREATE POLICY IF NOT EXISTS "Allow public insert access" 
+DROP POLICY IF EXISTS "Allow public insert access" ON public.highscores;
+CREATE POLICY "Allow public insert access" 
 ON public.highscores FOR INSERT 
 WITH CHECK (true);
 

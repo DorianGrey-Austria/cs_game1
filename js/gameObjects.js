@@ -872,6 +872,9 @@ class Player {
         const targetX = gamePosition.x;
         const targetY = gamePosition.y;
         
+        // Kill any existing tweens to prevent conflicts
+        this.scene.tweens.killTweensOf(this.sprite);
+        
         this.scene.tweens.add({
             targets: this.sprite,
             x: targetX,
@@ -880,11 +883,17 @@ class Player {
             ease: 'Power1'
         });
         
+        // Update internal position immediately for collision detection
         this.x = targetX;
         this.y = targetY;
         
         // Update visual state based on pose
         this.updateVisualState(gamePosition.state, gamePosition.handState);
+        
+        // Debug: Flash player on position update to show it's working
+        if (gamePosition.state !== 'neutral' && Math.random() < 0.1) {
+            console.log('🎭 Player state:', gamePosition.state, 'at', Math.round(targetX), Math.round(targetY));
+        }
     }
 
     updateVisualState(state, handState) {
@@ -922,21 +931,31 @@ class Player {
     getScaleForState(state) {
         switch (state) {
             case 'ducking':
-                return { x: 1.2, y: 0.6 };
+                return { x: 1.4, y: 0.5 }; // More dramatic ducking
             case 'jumping':
-                return { x: 0.8, y: 1.3 };
+                return { x: 0.7, y: 1.6 }; // More dramatic jumping
             case 'leaning_left':
             case 'leaning_right':
-                return { x: 1.1, y: 1.0 };
+                return { x: 1.3, y: 1.1 }; // Bigger leaning effect
+            case 'shield':
+                return { x: 2.0, y: 1.0 }; // Wide shield stance
+            case 'power':
+                return { x: 1.5, y: 1.5 }; // Bigger for power mode
             default:
                 return { x: 1.0, y: 1.0 };
         }
     }
 
     getTintForState(state, handState) {
-        // Special golden tint when hands are up for bonus collection
+        // Special effects for advanced gestures
         if (handState === 'up') {
-            return 0xffd700; // Gold
+            return 0xffd700; // Gold for bonus collection
+        }
+        if (handState === 'spread') {
+            return 0x00ffff; // Cyan for shield mode
+        }
+        if (handState === 'clap') {
+            return 0xff00ff; // Magenta for power mode
         }
         
         switch (state) {
@@ -947,6 +966,10 @@ class Player {
             case 'leaning_left':
             case 'leaning_right':
                 return 0xffa8c5; // Pink
+            case 'shield':
+                return 0x00ffff; // Cyan shield
+            case 'power':
+                return 0xff4444; // Red power
             default:
                 return 0x4ade80; // Green
         }

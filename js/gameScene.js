@@ -319,13 +319,13 @@ class GameScene extends Phaser.Scene {
     }
 
     update(time, delta) {
-        if (!this.isGameActive || this.isPaused) return;
-        
         // Update performance tracking
         this.updatePerformanceStats(time);
         
-        // Update player position from pose tracker
+        // Update player position from pose tracker (works even when game not active)
         this.updatePlayerFromPose();
+        
+        if (!this.isGameActive || this.isPaused) return;
         
         // Handle object spawning
         this.updateSpawning(delta);
@@ -364,13 +364,48 @@ class GameScene extends Phaser.Scene {
     updatePlayerFromPose() {
         if (!this.poseTracker) return;
         
-        const playerPosition = this.poseTracker.getGameCoordinates(this.gameWidth, this.gameHeight);
+        // Get normalized position (0-1) from pose tracker
+        const normalizedPosition = this.poseTracker.getPlayerPosition();
         
-        // Constrain player to left side of screen
-        playerPosition.x = Math.min(playerPosition.x, this.gameWidth * 0.4);
-        playerPosition.x = Math.max(playerPosition.x, this.gameWidth * 0.1);
+        // 🚀 ENHANCED MOVEMENT WITH FORCE MODE FOR TESTING
+        let forceMovement = false;
+        
+        // Debug force movement every few seconds to test if system works
+        if (Math.random() < 0.005) { // Occasionally force dramatic movement
+            normalizedPosition.x = Math.random();
+            normalizedPosition.y = Math.random();
+            normalizedPosition.state = ['ducking', 'jumping', 'leaning_left', 'leaning_right'][Math.floor(Math.random() * 4)];
+            forceMovement = true;
+            console.log('🎮 FORCE MOVEMENT TEST:', normalizedPosition);
+        }
+        
+        // Convert to game coordinates (pixels) with enhanced movement
+        const playerPosition = {
+            x: normalizedPosition.x * this.gameWidth,
+            y: normalizedPosition.y * this.gameHeight,
+            state: normalizedPosition.state,
+            handState: normalizedPosition.handState
+        };
+        
+        // More generous constraints for better movement range
+        playerPosition.x = Math.min(playerPosition.x, this.gameWidth * 0.5); // Allow more right movement
+        playerPosition.x = Math.max(playerPosition.x, this.gameWidth * 0.05); // Allow more left movement
+        
+        // More generous vertical constraints
+        playerPosition.y = Math.min(playerPosition.y, this.gameHeight - 30);
+        playerPosition.y = Math.max(playerPosition.y, 30);
         
         this.player.updatePosition(playerPosition);
+        
+        // Enhanced debug logging
+        if (forceMovement || Math.random() < 0.02) {
+            console.log('🎯 Player position update:', {
+                normalized: normalizedPosition,
+                pixels: playerPosition,
+                playerSprite: { x: this.player.sprite.x, y: this.player.sprite.y },
+                forced: forceMovement
+            });
+        }
     }
 
     updateSpawning(delta) {

@@ -288,7 +288,7 @@ class GameManager {
                     const playerPos = this.poseTracker.getPlayerPosition();
                     this.updateDebugInfo({
                         poseStatus: poses.length > 0 ? '✅' : '❌',
-                        playerPos: `${Math.round(playerPos.x * 100)}%, ${Math.round(playerPos.y * 100)}%`
+                        playerPos: `${Math.round(playerPos.x * 100)}%, ${Math.round(playerPos.y * 100)}% (${playerPos.state})`
                     });
                     
                 } catch (error) {
