@@ -39,8 +39,25 @@ class PoseTracker {
             }
 
             console.log('⏳ Loading TensorFlow.js...');
-            await tf.ready();
-            console.log('✅ TensorFlow.js ready, backend:', tf.getBackend());
+            if (typeof tf !== 'undefined' && tf.ready) {
+                await tf.ready();
+                console.log('✅ TensorFlow.js ready, backend:', tf.getBackend());
+            } else {
+                console.log('⏳ Waiting for TensorFlow.js to load...');
+                await new Promise(resolve => {
+                    const checkTF = () => {
+                        if (typeof tf !== 'undefined' && tf.ready) {
+                            tf.ready().then(() => {
+                                console.log('✅ TensorFlow.js ready, backend:', tf.getBackend());
+                                resolve();
+                            });
+                        } else {
+                            setTimeout(checkTF, 100);
+                        }
+                    };
+                    checkTF();
+                });
+            }
 
             console.log('📥 Loading MoveNet model...');
             const detectorConfig = {
