@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PushUp Panic - Simple Clean Version</title>
+    <meta name="description" content="Clean 2D stick figure game with gesture controls">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css?v=simple-clean">
+    
+    <!-- Simple CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob: data:; connect-src 'self' https://umvrurelsxpxmyzcvrcd.supabase.co https:; img-src 'self' data: https: blob:;">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <div class="game-header">
+            <h1>🎮 PushUp Panic - Simple</h1>
+            <div class="game-stats">
+                <div class="stat">
+                    <span class="stat-label">Score:</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Level:</span>
+                    <span class="stat-value" id="level">1</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Game Area -->
+        <div class="game-main">
+            <!-- Webcam Preview -->
+            <div class="webcam-preview">
+                <video id="webcam" autoplay muted playsinline></video>
+                <canvas id="poseCanvas"></canvas>
+            </div>
+            
+            <!-- Game Canvas -->
+            <div id="gameContainer"></div>
+            
+            <!-- Simple Instructions -->
+            <div class="game-overlay">
+                <div id="gameStatus" class="game-status">🎮 SIMPLE MODE READY</div>
+                <div id="gameInstructions" class="game-instructions">
+                    <div class="instruction-header">🎯 EINFACHE STEUERUNG</div>
+                    <div class="simple-controls">
+                        <div class="control-item">
+                            <span class="control-icon">←→</span>
+                            <span class="control-text">Kopf bewegen = Laufen</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-icon">↑</span>
+                            <span class="control-text">Kopf hoch = Springen</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-icon">↓</span>
+                            <span class="control-text">Kopf runter = Ducken</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-icon">🙌</span>
+                            <span class="control-text">Hände hoch = Sammeln</span>
+                        </div>
+                    </div>
+                    <small>⚠️ Webcam erforderlich</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="game-controls">
+            <button id="startGameBtn" class="game-btn primary">SPIEL STARTEN</button>
+            <button id="pauseGameBtn" class="game-btn secondary" disabled>PAUSE</button>
+            <button id="resetGameBtn" class="game-btn secondary">RESET</button>
+        </div>
+        
+        <!-- Debug Panel -->
+        <div class="debug-panel" id="debugPanel" style="display: none;">
+            <h3>🔧 Debug (Ctrl+Shift+I)</h3>
+            <div id="debugInfo">
+                <div>Pose: <span id="poseStatus">❌</span></div>
+                <div>Position: <span id="playerPos">0, 0</span></div>
+                <div>Obstacles: <span id="objectCount">0</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <!-- Simple Game System -->
+    <script src="js/simpleGraphics.js"></script>
+    <script src="js/simpleGameScene.js"></script>
+    
+    <!-- Existing Systems (Minimal) -->
+    <script src="js/webcamManager.js"></script>
+    <script src="js/poseTracker.js"></script>
+    <script src="js/supabaseManager.js"></script>
+    
+    <!-- Simple Game Manager -->
+    <script>
+        // 🎮 SIMPLE GAME MANAGER - Minimal Implementation
+        class SimpleGameManager {
+            constructor() {
+                this.isInitialized = false;
+                this.isGameRunning = false;
+                
+                this.webcamManager = null;
+                this.poseTracker = null;
+                this.supabaseManager = null;
+                this.game = null;
+                this.gameScene = null;
+                
+                this.elements = {
+                    startBtn: document.getElementById('startGameBtn'),
+                    pauseBtn: document.getElementById('pauseGameBtn'),
+                    resetBtn: document.getElementById('resetGameBtn'),
+                    gameStatus: document.getElementById('gameStatus'),
+                    debugPanel: document.getElementById('debugPanel')
+                };
+                
+                this.setupEventListeners();
+                console.log('🎮 SimpleGameManager created');
+            }
+            
+            setupEventListeners() {
+                this.elements.startBtn.addEventListener('click', () => this.startGame());
+                this.elements.pauseBtn.addEventListener('click', () => this.pauseGame());
+                this.elements.resetBtn.addEventListener('click', () => this.resetGame());
+                
+                // Debug toggle
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                        this.toggleDebug();
+                    }
+                });
+            }
+            
+            async initialize() {
+                console.log('🚀 Initializing simple game...');
+                
+                try {
+                    // Initialize webcam
+                    this.updateStatus('📹 Initializing webcam...');
+                    this.webcamManager = new WebcamManager();
+                    await this.webcamManager.initialize();
+                    
+                    // Initialize pose tracking
+                    this.updateStatus('🤖 Initializing pose detection...');
+                    this.poseTracker = new PoseTracker();
+                    await this.poseTracker.initialize();
+                    
+                    // Initialize Supabase
+                    this.updateStatus('🗄️ Initializing database...');
+                    this.supabaseManager = new SupabaseManager();
+                    
+                    // Initialize Phaser with Simple Scene
+                    this.updateStatus('🎮 Initializing game engine...');
+                    this.initializePhaser();
+                    
+                    // Start pose detection loop
+                    this.startPoseDetectionLoop();
+                    
+                    this.isInitialized = true;
+                    this.updateStatus('✅ GAME READY - CLICK START!');
+                    this.elements.startBtn.disabled = false;
+                    
+                    console.log('✅ Simple game initialized successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Initialization failed:', error);
+                    this.updateStatus('❌ INITIALIZATION FAILED');
+                }
+            }
+            
+            initializePhaser() {
+                const config = {
+                    type: Phaser.AUTO,
+                    width: 800,
+                    height: 400,
+                    parent: 'gameContainer',
+                    backgroundColor: '#87ceeb',
+                    scene: SimpleGameScene
+                };
+                
+                this.game = new Phaser.Game(config);
+                
+                // Connect scene
+                this.game.events.once('ready', () => {
+                    this.gameScene = this.game.scene.getScene('SimpleGameScene');
+                    if (this.gameScene) {
+                        this.gameScene.setPoseTracker(this.poseTracker);
+                        this.gameScene.setGameManager(this);
+                        console.log('🎮 Simple scene connected');
+                    }
+                });
+            }
+            
+            startPoseDetectionLoop() {
+                const detectPoses = async () => {
+                    if (this.webcamManager && this.poseTracker) {
+                        if (this.webcamManager.isReady() && this.poseTracker.isReady()) {
+                            try {
+                                const videoElement = this.webcamManager.getVideoElement();
+                                const poses = await this.poseTracker.detectPoses(videoElement);
+                                
+                                this.poseTracker.drawPoseOverlay(poses, videoElement);
+                                
+                                // Update debug
+                                this.updateDebugInfo(poses);
+                                
+                            } catch (error) {
+                                console.error('Pose detection error:', error);
+                            }
+                        }
+                    }
+                    requestAnimationFrame(detectPoses);
+                };
+                detectPoses();
+            }
+            
+            startGame() {
+                if (!this.isInitialized) {
+                    console.warn('Game not initialized');
+                    return;
+                }
+                
+                console.log('🚀 Starting simple game...');
+                this.isGameRunning = true;
+                this.elements.startBtn.disabled = true;
+                this.elements.pauseBtn.disabled = false;
+                
+                if (this.gameScene) {
+                    this.gameScene.startGame();
+                }
+                
+                this.updateStatus('🎮 GAME RUNNING!');
+            }
+            
+            pauseGame() {
+                if (this.gameScene) {
+                    this.gameScene.pauseGame();
+                }
+            }
+            
+            resetGame() {
+                console.log('🔄 Resetting game...');
+                this.isGameRunning = false;
+                this.elements.startBtn.disabled = false;
+                this.elements.pauseBtn.disabled = true;
+                
+                if (this.gameScene) {
+                    this.gameScene.stopGame();
+                }
+                
+                this.updateStatus('✅ GAME READY - CLICK START!');
+            }
+            
+            updateStatus(message) {
+                this.elements.gameStatus.textContent = message;
+            }
+            
+            updateDebugInfo(poses) {
+                const debugInfo = document.getElementById('debugInfo');
+                if (debugInfo) {
+                    const poseStatus = poses && poses.length > 0 ? '✅' : '❌';
+                    const playerPos = this.poseTracker ? this.poseTracker.getPlayerPosition() : { x: 0, y: 0, state: 'unknown' };
+                    
+                    debugInfo.innerHTML = `
+                        <div>Pose: ${poseStatus}</div>
+                        <div>Position: ${Math.round(playerPos.x * 100)}%, ${Math.round(playerPos.y * 100)}%</div>
+                        <div>State: ${playerPos.state}</div>
+                        <div>Objects: ${this.gameScene ? this.gameScene.obstacles.length : 0}</div>
+                    `;
+                }
+            }
+            
+            toggleDebug() {
+                const panel = this.elements.debugPanel;
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+        
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🎮 Starting Simple PushUp Panic...');
+            
+            const gameManager = new SimpleGameManager();
+            await gameManager.initialize();
+            
+            // Make global for debugging
+            window.gameManager = gameManager;
+        });
+    </script>
+</body>
+</html>
