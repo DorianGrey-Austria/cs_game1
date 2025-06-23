@@ -1,0 +1,28 @@
+FLUX.AI PROMPT FOR GAME BACKGROUND:
+
+"Create a vibrant, futuristic cyberpunk game background in landscape format (16:9 ratio). The scene should feature:
+
+- A neon-lit cityscape at dusk with towering skyscrapers
+- Glowing purple, cyan, and electric blue neon signs and lights
+- Floating holographic elements and digital particles in the air
+- A dark starry sky with subtle aurora effects
+- Multiple layers for parallax scrolling effect (foreground, midground, background)
+- Smooth gradients from deep purple/navy at the top to darker tones at bottom
+- Subtle grid patterns and geometric shapes scattered throughout
+- Atmospheric haze/fog for depth
+- No characters or text, pure environmental background
+- High contrast, vibrant colors perfect for a modern gaming interface
+- Resolution optimized for web games (1920x1080 or similar)
+
+Style: Digital art, cyberpunk aesthetic, high energy, perfect for a motion-controlled body tracking game. The background should not be too busy to distract from gameplay elements but should be visually stunning and immersive."
+
+ALTERNATIVE PROMPT (if cyberpunk too complex):
+
+"Create a minimalist space game background in landscape format. Features:
+- Deep space with stars and nebulas
+- Gradient from dark blue to purple
+- Subtle geometric patterns
+- Floating energy particles
+- Clean, modern aesthetic
+- Perfect for UI overlay
+- High contrast for readability"
