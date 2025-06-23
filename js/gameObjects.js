@@ -919,11 +919,33 @@ class Player {
             ease: 'Back.easeOut'
         });
         
+        // Safely apply tint to sprite and children
         if (this.sprite.getAll) {
+            // For containers, apply tint to each child that supports it
             this.sprite.getAll().forEach(child => {
-                child.setTint(tint);
+                if (child.setTint && typeof child.setTint === 'function') {
+                    try {
+                        child.setTint(tint);
+                    } catch (e) {
+                        // Some graphics objects may not support tinting
+                        console.warn('Could not tint child object:', child.type);
+                    }
+                } else if (child.setFillStyle && typeof child.setFillStyle === 'function') {
+                    // For graphics objects, use setFillStyle instead
+                    try {
+                        child.clear();
+                        child.fillStyle(tint);
+                        // Re-draw the shape (simplified approach)
+                        if (child._originalDraw) {
+                            child._originalDraw();
+                        }
+                    } catch (e) {
+                        console.warn('Could not change fill style for graphics object');
+                    }
+                }
             });
-        } else {
+        } else if (this.sprite.setTint && typeof this.sprite.setTint === 'function') {
+            // For single sprites
             this.sprite.setTint(tint);
         }
     }

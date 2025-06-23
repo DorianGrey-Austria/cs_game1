@@ -355,4 +355,98 @@ class PerformanceManager {
             pool.forEach(obj => {
                 if (obj.sprite && obj.sprite.destroy) {
                     obj.sprite.destroy();
-                }\n            });\n            pool.length = 0;\n        });\n        \n        // Clear effect queue\n        this.effectQueue.length = 0;\n        \n        // Stop monitoring\n        this.isMonitoring = false;\n        \n        console.log('🧹 Performance Manager cleaned up');\n    }\n\n    // Utility Methods\n    showPerformanceNotification(message, type) {\n        if (window.gameManager && window.gameManager.uiManager) {\n            window.gameManager.uiManager.showNotification(message, type, 2000);\n        }\n    }\n\n    getMetrics() {\n        return {\n            ...this.metrics,\n            settings: { ...this.settings },\n            deviceCapabilities: { ...this.deviceCapabilities }\n        };\n    }\n\n    // Performance Hints\n    getPerformanceHints() {\n        const hints = [];\n        \n        if (this.metrics.averageFPS < 30) {\n            hints.push({\n                type: 'warning',\n                message: 'Low FPS detected. Consider reducing visual effects.',\n                action: () => this.optimizeForLowPerformance()\n            });\n        }\n        \n        if (this.metrics.memoryUsage > 100) {\n            hints.push({\n                type: 'warning',\n                message: 'High memory usage detected.',\n                action: () => this.forceGarbageCollection()\n            });\n        }\n        \n        return hints;\n    }\n\n    forceGarbageCollection() {\n        // Force cleanup of unused objects\n        this.objectPools.forEach((pool) => {\n            pool.forEach(obj => {\n                if (!obj.active) {\n                    this.resetPoolObject(obj);\n                }\n            });\n        });\n        \n        // Suggest garbage collection if available\n        if (window.gc) {\n            window.gc();\n        }\n        \n        console.log('🗑️ Forced garbage collection');\n    }\n\n    // Settings Management\n    updateSettings(newSettings) {\n        Object.assign(this.settings, newSettings);\n        this.applyQualitySettings();\n        \n        console.log('⚙️ Performance settings updated:', this.settings);\n    }\n\n    resetToDefaults() {\n        this.settings = {\n            targetFPS: 60,\n            maxObjects: 50,\n            particleMultiplier: 1.0,\n            effectQuality: 'high',\n            autoAdjust: true,\n            adaptiveRendering: true\n        };\n        \n        this.adjustForDevice();\n        console.log('🔄 Performance settings reset to defaults');\n    }\n}\n\n// Export for global use\nwindow.PerformanceManager = PerformanceManager;
+                }
+            });
+            pool.length = 0;
+        });
+        
+        // Clear effect queue
+        this.effectQueue.length = 0;
+        
+        // Stop monitoring
+        this.isMonitoring = false;
+        
+        console.log('🧹 Performance Manager cleaned up');
+    }
+
+    // Utility Methods
+    showPerformanceNotification(message, type) {
+        if (window.gameManager && window.gameManager.uiManager) {
+            window.gameManager.uiManager.showNotification(message, type, 2000);
+        }
+    }
+
+    getMetrics() {
+        return {
+            ...this.metrics,
+            settings: { ...this.settings },
+            deviceCapabilities: { ...this.deviceCapabilities }
+        };
+    }
+
+    // Performance Hints
+    getPerformanceHints() {
+        const hints = [];
+        
+        if (this.metrics.averageFPS < 30) {
+            hints.push({
+                type: 'warning',
+                message: 'Low FPS detected. Consider reducing visual effects.',
+                action: () => this.optimizeForLowPerformance()
+            });
+        }
+        
+        if (this.metrics.memoryUsage > 100) {
+            hints.push({
+                type: 'warning',
+                message: 'High memory usage detected.',
+                action: () => this.forceGarbageCollection()
+            });
+        }
+        
+        return hints;
+    }
+
+    forceGarbageCollection() {
+        // Force cleanup of unused objects
+        this.objectPools.forEach((pool) => {
+            pool.forEach(obj => {
+                if (!obj.active) {
+                    this.resetPoolObject(obj);
+                }
+            });
+        });
+        
+        // Suggest garbage collection if available
+        if (window.gc) {
+            window.gc();
+        }
+        
+        console.log('🗑️ Forced garbage collection');
+    }
+
+    // Settings Management
+    updateSettings(newSettings) {
+        Object.assign(this.settings, newSettings);
+        this.applyQualitySettings();
+        
+        console.log('⚙️ Performance settings updated:', this.settings);
+    }
+
+    resetToDefaults() {
+        this.settings = {
+            targetFPS: 60,
+            maxObjects: 50,
+            particleMultiplier: 1.0,
+            effectQuality: 'high',
+            autoAdjust: true,
+            adaptiveRendering: true
+        };
+        
+        this.adjustForDevice();
+        console.log('🔄 Performance settings reset to defaults');
+    }
+}
+
+// Export for global use
+window.PerformanceManager = PerformanceManager;
