@@ -30,6 +30,7 @@ jobs:
         
         # Copy all necessary files
         cp index.html deploy/
+        cp index-simple.html deploy/
         cp styles.css deploy/
         cp sw.js deploy/
         cp -r js deploy/
@@ -88,15 +89,17 @@ jobs:
       run: |
         echo "🎯 Deployment completed successfully!"
         echo ""
-        echo "🌐 Game is now live at:"
-        echo "https://aiworkflows.at/pushup-panic/"
+        echo "🌐 Game versions now live:"
+        echo "• 🎮 MAIN: https://aiworkflows.at/pushup-panic/"
+        echo "• 🧹 SIMPLE: https://aiworkflows.at/pushup-panic/index-simple.html"
         echo ""
         echo "🎮 Features deployed:"
+        echo "• ✅ Hyper3D generated stick figure characters"
+        echo "• ✅ Simple graphics system (Senior Dev approach)"
+        echo "• ✅ Fixed movement logic - player moves, not objects"
+        echo "• ✅ Clean 2D procedural graphics"
         echo "• ✅ Webcam pose detection with TensorFlow.js"
         echo "• ✅ Supabase highscore system" 
-        echo "• ✅ Progressive difficulty scaling"
-        echo "• ✅ Cyberpunk visual effects"
         echo "• ✅ HTTPS security headers"
-        echo "• ✅ Service Worker caching"
         echo ""
-        echo "🔥 Ready to play!"
+        echo "🔥 Ready to test both versions!"
