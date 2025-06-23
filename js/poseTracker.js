@@ -30,34 +30,52 @@ class PoseTracker {
         console.log('🤖 Initializing pose tracker...');
         
         try {
-            if (typeof tf === 'undefined') {
-                throw new Error('TensorFlow.js not available');
-            }
-            
-            if (typeof poseDetection === 'undefined') {
-                throw new Error('Pose Detection library not available');
-            }
+            // Wait for TensorFlow.js to be fully loaded
+            console.log('⏳ Waiting for TensorFlow.js to load...');
+            await new Promise((resolve, reject) => {
+                let attempts = 0;
+                const maxAttempts = 100; // 10 seconds timeout
+                
+                const checkTF = () => {
+                    attempts++;
+                    
+                    if (typeof tf !== 'undefined' && tf.ready && typeof tf.ready === 'function') {
+                        console.log('✅ TensorFlow.js detected, initializing...');
+                        tf.ready().then(() => {
+                            console.log('✅ TensorFlow.js ready, backend:', tf.getBackend());
+                            resolve();
+                        }).catch(reject);
+                    } else if (attempts >= maxAttempts) {
+                        reject(new Error('TensorFlow.js loading timeout'));
+                    } else {
+                        console.log(`⏳ TensorFlow.js loading... (${attempts}/${maxAttempts})`);
+                        setTimeout(checkTF, 100);
+                    }
+                };
+                checkTF();
+            });
 
-            console.log('⏳ Loading TensorFlow.js...');
-            if (typeof tf !== 'undefined' && tf.ready) {
-                await tf.ready();
-                console.log('✅ TensorFlow.js ready, backend:', tf.getBackend());
-            } else {
-                console.log('⏳ Waiting for TensorFlow.js to load...');
-                await new Promise(resolve => {
-                    const checkTF = () => {
-                        if (typeof tf !== 'undefined' && tf.ready) {
-                            tf.ready().then(() => {
-                                console.log('✅ TensorFlow.js ready, backend:', tf.getBackend());
-                                resolve();
-                            });
-                        } else {
-                            setTimeout(checkTF, 100);
-                        }
-                    };
-                    checkTF();
-                });
-            }
+            // Wait for Pose Detection library
+            console.log('⏳ Waiting for Pose Detection library...');
+            await new Promise((resolve, reject) => {
+                let attempts = 0;
+                const maxAttempts = 50; // 5 seconds timeout
+                
+                const checkPD = () => {
+                    attempts++;
+                    
+                    if (typeof poseDetection !== 'undefined' && poseDetection.createDetector) {
+                        console.log('✅ Pose Detection library ready');
+                        resolve();
+                    } else if (attempts >= maxAttempts) {
+                        reject(new Error('Pose Detection library loading timeout'));
+                    } else {
+                        console.log(`⏳ Pose Detection loading... (${attempts}/${maxAttempts})`);
+                        setTimeout(checkPD, 100);
+                    }
+                };
+                checkPD();
+            });
 
             console.log('📥 Loading MoveNet model...');
             const detectorConfig = {
