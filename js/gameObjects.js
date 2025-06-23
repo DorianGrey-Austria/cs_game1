@@ -953,47 +953,38 @@ class Player {
     getScaleForState(state) {
         switch (state) {
             case 'ducking':
-                return { x: 1.4, y: 0.5 }; // More dramatic ducking
+                return { x: 1.2, y: 0.6 }; // Ducking - wider, shorter
             case 'jumping':
-                return { x: 0.7, y: 1.6 }; // More dramatic jumping
-            case 'leaning_left':
-            case 'leaning_right':
-                return { x: 1.3, y: 1.1 }; // Bigger leaning effect
-            case 'shield':
-                return { x: 2.0, y: 1.0 }; // Wide shield stance
-            case 'power':
-                return { x: 1.5, y: 1.5 }; // Bigger for power mode
+                return { x: 0.8, y: 1.4 }; // Jumping - narrower, taller
+            case 'moving_left':
+            case 'moving_right':
+                return { x: 1.1, y: 1.0 }; // Moving - slightly larger
+            case 'collecting':
+                return { x: 1.3, y: 1.2 }; // Collecting - bigger with arms up
             default:
-                return { x: 1.0, y: 1.0 };
+                return { x: 1.0, y: 1.0 }; // Neutral
         }
     }
 
     getTintForState(state, handState) {
-        // Special effects for advanced gestures
-        if (handState === 'up') {
-            return 0xffd700; // Gold for bonus collection
-        }
-        if (handState === 'spread') {
-            return 0x00ffff; // Cyan for shield mode
-        }
-        if (handState === 'clap') {
-            return 0xff00ff; // Magenta for power mode
+        // Special hand states
+        if (handState === 'collecting') {
+            return 0xffd700; // Gold for collecting
         }
         
         switch (state) {
             case 'ducking':
-                return 0x4ecdc4; // Cyan
+                return 0x4ecdc4; // Cyan - ducking
             case 'jumping':
-                return 0xffe66d; // Yellow
-            case 'leaning_left':
-            case 'leaning_right':
-                return 0xffa8c5; // Pink
-            case 'shield':
-                return 0x00ffff; // Cyan shield
-            case 'power':
-                return 0xff4444; // Red power
+                return 0xffe66d; // Yellow - jumping
+            case 'moving_left':
+                return 0xffa8c5; // Pink - moving left
+            case 'moving_right':
+                return 0xc8a8ff; // Purple - moving right
+            case 'collecting':
+                return 0xffd700; // Gold - collecting
             default:
-                return 0x4ade80; // Green
+                return 0x4ade80; // Green - neutral
         }
     }
 
