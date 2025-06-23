@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Pilot - Motion Control Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-right: 2px solid #4ade80;
+        }
+        
+        .game-area {
+            flex: 1;
+            position: relative;
+            background: url('2dgameBack2.png') center center / cover no-repeat;
+            overflow: hidden;
+        }
+        
+        .game-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .video-preview {
+            width: 100%;
+            height: 180px;
+            background: black;
+            border: 2px solid #4ade80;
+            border-radius: 8px;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .video-preview video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-preview canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .game-ui {
+            background: rgba(74, 222, 128, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #4ade80;
+        }
+        
+        .score-display {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .score-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4ade80;
+            text-shadow: 0 0 10px #4ade80;
+        }
+        
+        .score-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-radius: 4px;
+        }
+        
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #22d3ee;
+        }
+        
+        .controls {
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 6px;
+            background: #4ade80;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #22c55e;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn.danger {
+            background: #dc2626;
+        }
+        
+        .btn.danger:hover {
+            background: #b91c1c;
+        }
+        
+        .instructions {
+            background: rgba(0,0,0,0.5);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .instructions h4 {
+            color: #4ade80;
+            margin-bottom: 8px;
+        }
+        
+        /* Game Objects */
+        .player {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #4ade80 0%, #22c55e 70%);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 20px #4ade80;
+            transition: all 0.1s ease;
+            z-index: 200;
+        }
+        
+        .player.boosting {
+            box-shadow: 0 0 30px #4ade80, 0 0 50px #4ade80;
+            transform: scale(1.2);
+        }
+        
+        .collectible {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: radial-gradient(circle, #ffd700 0%, #ffb347 70%);
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px #ffd700;
+            animation: pulse 1s infinite alternate;
+            z-index: 150;
+        }
+        
+        .obstacle {
+            position: absolute;
+            background: radial-gradient(circle, #dc2626 0%, #991b1b 70%);
+            border-radius: 4px;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 15px #dc2626;
+            z-index: 150;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #4ade80;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(2); }
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #dc2626;
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.5);
+            z-index: 1000;
+        }
+        
+        .game-over h2 {
+            color: #dc2626;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .final-score {
+            font-size: 3rem;
+            color: #4ade80;
+            margin: 20px 0;
+        }
+        
+        .highscore {
+            background: rgba(74, 222, 128, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #4ade80;
+        }
+        
+        .highscore h4 {
+            color: #4ade80;
+            margin-bottom: 10px;
+        }
+        
+        .highscore-list {
+            font-family: 'Courier New', monospace;
+        }
+        
+        .highscore-entry {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 3px 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 3px;
+        }
+        
+        .highscore-entry.current {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="sidebar">
+            <h1>🎮 Body Pilot</h1>
+            
+            <div class="video-preview">
+                <video id="webcam" autoplay muted playsinline></video>
+                <canvas id="poseCanvas"></canvas>
+            </div>
+            
+            <div class="game-ui">
+                <div class="score-display">
+                    <div class="score-value" id="currentScore">0</div>
+                    <div class="score-label">SCORE</div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="collectibles">0</div>
+                        <div>Collected</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="timeLeft">60</div>
+                        <div>Time</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="startBtn" class="btn">Start Game</button>
+                <button id="pauseBtn" class="btn" disabled>Pause</button>
+                <button id="resetBtn" class="btn danger">Reset</button>
+            </div>
+            
+            <div class="highscore">
+                <h4>🏆 Highscores</h4>
+                <div class="highscore-list" id="highscoreList">
+                    <div class="highscore-entry">
+                        <span>1. Player</span>
+                        <span>0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h4>🎯 Controls:</h4>
+                <strong>Head Movement:</strong><br>
+                • Move head → Navigate player<br>
+                • Duck down → Boost speed<br><br>
+                
+                <strong>Hand Gestures:</strong><br>
+                • Raise left hand → Shield<br>
+                • Raise right hand → Power-up<br>
+                • Both hands up → Special ability<br><br>
+                
+                <strong>Objective:</strong><br>
+                Collect golden orbs, avoid red obstacles!
+            </div>
+        </div>
+        
+        <div class="game-area" id="gameArea">
+            <div class="player" id="player"></div>
+        </div>
+    </div>
+    
+    <!-- TensorFlow.js Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js"></script>
+    
+    <!-- Game Script -->
+    <script src="body-pilot-game.js"></script>
+</body>
+</html>
