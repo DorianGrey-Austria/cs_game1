@@ -19,6 +19,9 @@ mcp-docker-setup/
 claude-desktop-config*.json
 supabase-config.json
 
+# Environment variables
+.env
+
 # Build artifacts
 deployment/
 *.zip

@@ -1,0 +1,102 @@
+name: Deploy PushUp Panic to Hostinger
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Prepare Production Files
+      run: |
+        echo "🚀 Preparing PushUp Panic for production..."
+        
+        # Copy production HTML as main index
+        cp index-production.html index.html
+        
+        # Create deployment directory
+        mkdir -p deploy
+        
+        # Copy all necessary files
+        cp index.html deploy/
+        cp styles.css deploy/
+        cp sw.js deploy/
+        cp -r js deploy/
+        cp -r assets deploy/
+        
+        # Create .htaccess for production
+        cat > deploy/.htaccess << 'EOF'
+        # Force HTTPS for webcam functionality
+        RewriteEngine On
+        RewriteCond %{HTTPS} !=on
+        RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+        
+        # Enable compression
+        <ifModule mod_deflate.c>
+            AddOutputFilterByType DEFLATE text/plain
+            AddOutputFilterByType DEFLATE text/html
+            AddOutputFilterByType DEFLATE text/css
+            AddOutputFilterByType DEFLATE application/javascript
+            AddOutputFilterByType DEFLATE image/svg+xml
+        </ifModule>
+        
+        # Cache static assets
+        <ifModule mod_expires.c>
+            ExpiresActive On
+            ExpiresByType text/css "access plus 1 month"
+            ExpiresByType application/javascript "access plus 1 month"
+            ExpiresByType image/png "access plus 1 month"
+            ExpiresByType image/jpg "access plus 1 month"
+        </ifModule>
+        
+        # Security headers
+        Header always set X-Content-Type-Options nosniff
+        Header always set X-Frame-Options DENY
+        Header always set X-XSS-Protection "1; mode=block"
+        EOF
+        
+        echo "✅ Production files prepared"
+        ls -la deploy/
+        
+    - name: Deploy to Hostinger via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./deploy/
+        server-dir: /public_html/pushup-panic/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/.DS_Store
+          **/Thumbs.db
+          
+    - name: Verify Deployment
+      run: |
+        echo "🎯 Deployment completed successfully!"
+        echo ""
+        echo "🌐 Game is now live at:"
+        echo "https://aiworkflows.at/pushup-panic/"
+        echo ""
+        echo "🎮 Features deployed:"
+        echo "• ✅ Webcam pose detection with TensorFlow.js"
+        echo "• ✅ Supabase highscore system" 
+        echo "• ✅ Progressive difficulty scaling"
+        echo "• ✅ Cyberpunk visual effects"
+        echo "• ✅ HTTPS security headers"
+        echo "• ✅ Service Worker caching"
+        echo ""
+        echo "🔥 Ready to play!"

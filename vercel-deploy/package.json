@@ -1,0 +1,30 @@
+{
+  "name": "pushup-panic",
+  "version": "1.0.0",
+  "description": "Webcam-based action dodge game with AI pose detection",
+  "main": "index-production.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "build": "cp index-production.html index.html",
+    "dev": "python3 -m http.server 8000",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "game",
+    "webcam",
+    "pose-detection", 
+    "tensorflow",
+    "phaser",
+    "supabase"
+  ],
+  "author": "Generated with Claude Code",
+  "license": "MIT",
+  "homepage": "https://github.com/yourusername/pushup-panic",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/pushup-panic.git"
+  },
+  "devDependencies": {
+    "vercel": "latest"
+  }
+}
